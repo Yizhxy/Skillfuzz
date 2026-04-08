@@ -1,0 +1,433 @@
+{
+  "description": "Tasks that have exactly one workflow-type skill (流程型task with single SKILL)",
+  "count": 36,
+  "tasks": [
+    {
+      "task_name": "azure-bgp-oscillation-route-leak",
+      "skill_name": "azure-bgp",
+      "summary": "Workflow to analyze and resolve BGP oscillation and route leaks in Azure Virtual WAN hub-and-spoke topologies",
+      "steps": [
+        "Step 1: Sanity-check inputs — verify all ASNs exist in topology, check relationship symmetry",
+        "Step 2: Detect BGP oscillation — build directed preference graph and find preference cycles",
+        "Step 3: Detect BGP route leak — check valley-free rule violations",
+        "Step 4: Select fix using tiered ranking — Tier 1: Virtual WAN Routing Intent, Tier 2: Export/Route Policy, Tier 3: UDR",
+        "Step 5: Reject prohibited fixes — reject disabling BGP, shutting down peering, removing connectivity"
+      ]
+    },
+    {
+      "task_name": "citation-check",
+      "skill_name": "citation-management",
+      "summary": "Comprehensive citation management workflow for academic research",
+      "steps": [
+        "Phase 1: Paper Discovery and Search — search Google Scholar and PubMed",
+        "Phase 2: Metadata Extraction — convert paper identifiers to complete metadata via APIs",
+        "Phase 3: BibTeX Formatting — generate clean, properly formatted BibTeX entries",
+        "Phase 4: Citation Validation — verify all citations are accurate and complete",
+        "Phase 5: Integration with Writing Workflow — build references for manuscripts"
+      ]
+    },
+    {
+      "task_name": "econ-detrending-correlation",
+      "skill_name": "timeseries-detrending",
+      "summary": "Step-by-step workflow for detrending economic time series using HP filter",
+      "steps": [
+        "Step 1: Load and clean data — handle missing values, ensure proper time ordering",
+        "Step 2: Convert to real terms — deflate nominal values using appropriate price index",
+        "Step 3: Apply log transformation — for positive level variables",
+        "Step 4: Apply HP filter — use appropriate lambda for data frequency",
+        "Step 5: Analyze cyclical component — compute correlations, volatilities, and business cycle statistics"
+      ]
+    },
+    {
+      "task_name": "enterprise-information-search",
+      "skill_name": "enterprise-artifact-search",
+      "summary": "Multi-hop evidence search and structured entity extraction over enterprise artifact datasets",
+      "steps": [
+        "Step 0: Parse intent and target product from the question",
+        "Step 1: Build candidate set with wide recall by searching product artifacts and following cross-references",
+        "Step 2: Apply hard product grounding (anti-distractor gate) requiring 2+ independent grounding signals",
+        "Step 3: Select the correct report version using latest/final/date precedence",
+        "Step 4: Extract author(s) from document fields, PR fields, or Slack messages",
+        "Step 5: Extract key reviewers using tiered evidence",
+        "Step 6: Validate IDs and de-duplicate, returning JSON-ready output with evidence map"
+      ]
+    },
+    {
+      "task_name": "financial-modeling-qa",
+      "skill_name": "xlsx",
+      "summary": "Spreadsheet workflow with financial modeling standards and mandatory recalculation",
+      "steps": [
+        "Step 1: Choose tool (pandas for data, openpyxl for formulas/formatting)",
+        "Step 2: Create/Load workbook or existing file",
+        "Step 3: Modify — add/edit data, formulas, and formatting",
+        "Step 4: Save to file",
+        "Step 5: Recalculate formulas using recalc.py (mandatory if using formulas)",
+        "Step 6: Verify and fix any errors from recalc output"
+      ]
+    },
+    {
+      "task_name": "flink-query",
+      "skill_name": "senior-data-engineer",
+      "summary": "Comprehensive data engineering skill with multiple workflows",
+      "steps": [
+        "Workflow 1 (ETL Pipeline): (1) Design architecture, (2) Configure YAML pipeline, (3) Generate Airflow DAG, (4) Define data quality rules, (5) Deploy and monitor",
+        "Workflow 2 (Streaming Pipeline): (1) Select architecture, (2) Configure pipeline, (3) Generate Kafka configs, (4) Generate Flink/Spark job, (5) Deploy and monitor",
+        "Workflow 3 (Data Quality): (1) Define rules, (2) Run validation, (3) Review results, (4) Integrate CI/CD, (5) Monitor trends",
+        "Workflow 4 (Performance Optimization): (1) Profile pipeline, (2) Identify bottlenecks, (3) Apply optimizations, (4) Tune Spark jobs, (5) Measure impact"
+      ]
+    },
+    {
+      "task_name": "glm-lake-mendota",
+      "skill_name": "glm-calibration",
+      "summary": "Calibrate GLM parameters to minimize RMSE using manual and optimization approaches",
+      "steps": [
+        "Step 1: Start with default parameters, run GLM, calculate RMSE",
+        "Step 2: Adjust one parameter at a time based on diagnostic pattern",
+        "Step 3: Apply specific parameter adjustments (wind_factor, Kw, coef_mix_hyp, etc.)",
+        "Step 4: Iterate until RMSE < 2.0C",
+        "Step 5: Use optimization (Nelder-Mead) for fine-tuning after manual adjustment"
+      ]
+    },
+    {
+      "task_name": "hvac-control",
+      "skill_name": "excitation-signal-design",
+      "summary": "Design step test excitation signals for system identification",
+      "steps": [
+        "Step 1: Start at steady state at a known operating point",
+        "Step 2: Apply a step input (change input from zero to a constant value)",
+        "Step 3: Hold for sufficient duration (3-5 time constants recommended)",
+        "Step 4: Record the response at regular intervals"
+      ]
+    },
+    {
+      "task_name": "invoice-fraud-detection",
+      "skill_name": "xlsx",
+      "summary": "Spreadsheet creation, editing, and analysis with mandatory recalculation workflow",
+      "steps": [
+        "Step 1: Choose tool (pandas for data, openpyxl for formulas/formatting)",
+        "Step 2: Create/Load workbook or existing file",
+        "Step 3: Modify — add/edit data, formulas, and formatting",
+        "Step 4: Save to file",
+        "Step 5: Recalculate formulas using recalc.py (mandatory if using formulas)",
+        "Step 6: Verify and fix any errors from recalc output"
+      ]
+    },
+    {
+      "task_name": "jpg-ocr-stat",
+      "skill_name": "xlsx",
+      "summary": "Spreadsheet creation, editing, and analysis with mandatory recalculation workflow",
+      "steps": [
+        "Step 1: Choose tool (pandas for data, openpyxl for formulas/formatting)",
+        "Step 2: Create/Load workbook or existing file",
+        "Step 3: Modify — add/edit data, formulas, and formatting",
+        "Step 4: Save to file",
+        "Step 5: Recalculate formulas using recalc.py (mandatory if using formulas)",
+        "Step 6: Verify and fix any errors from recalc output"
+      ]
+    },
+    {
+      "task_name": "lab-unit-harmonization",
+      "skill_name": "lab-unit-harmonization",
+      "summary": "Sequential pipeline for harmonizing clinical lab data",
+      "steps": [
+        "Step 0: Filter incomplete records — remove rows with any missing values",
+        "Step 1: Parse numeric formats — handle scientific notation, European decimals, whitespace",
+        "Step 2: Unit conversion via range-based detection — try conversion factors until value falls in expected range",
+        "Step 3: Format output to exactly 2 decimal places"
+      ]
+    },
+    {
+      "task_name": "lake-warming-attribution",
+      "skill_name": "contribution-analysis",
+      "summary": "Workflow for quantifying factor contributions using R-squared decomposition on PCA factor scores",
+      "steps": [
+        "Step 1: Combine ALL variables into one matrix",
+        "Step 2: Standardize variables using StandardScaler",
+        "Step 3: Run ONE global PCA with varimax rotation on all variables together",
+        "Step 4: Calculate full model R-squared using factor scores",
+        "Step 5: Calculate contribution of each factor via R-squared decomposition"
+      ]
+    },
+    {
+      "task_name": "lean4-proof",
+      "skill_name": "lean4-theorem-proving",
+      "summary": "4-phase workflow for Lean 4 theorem proving with compiler-guided repair",
+      "steps": [
+        "Phase 1: Structure Before Solving — outline proof strategy with have statements and documented sorries",
+        "Phase 2: Helper Lemmas First — build infrastructure bottom-up, extract reusable components",
+        "Phase 3: Incremental Filling — fill ONE sorry at a time, compile after each, commit working code",
+        "Phase 4: Type Class Management — add explicit instances with haveI/letI when synthesis fails"
+      ]
+    },
+    {
+      "task_name": "manufacturing-codebook-normalization",
+      "skill_name": "manufacturing-failure-reason-codebook-normalization",
+      "summary": "Pipeline for normalizing manufacturing failure reason text into standardized codebook codes",
+      "steps": [
+        "Step 1: Load test_center_logs.csv and product codebooks; build valid_code_set, station_scope_map",
+        "Step 2: For each record, split raw_reason_text into 1-N segments with segment_id and span_text",
+        "Step 3: For each segment, filter candidates by station scope, compute match score from combined evidence",
+        "Step 4: Rank candidates by score; apply deterministic tie-break among near-best candidates",
+        "Step 5: Output exactly one pred_code/pred_label per segment (or UNKNOWN) with calibrated confidence"
+      ]
+    },
+    {
+      "task_name": "manufacturing-equipment-maintenance",
+      "skill_name": "reflow-profile-compliance-toolkit",
+      "summary": "End-to-end pipeline for reflow profile compliance checking",
+      "steps": [
+        "Step 1: Extract config object from handbook: regions, limits, windows, margins, feasibility rules",
+        "Step 2: Load and sort MES and thermocouple data by run_id, tc_id, time_s",
+        "Step 3: Compute per-run metrics deterministically with stable tie-breaks and interpolation",
+        "Step 4: Build JSON output objects with sorted IDs and 2-decimal rounding",
+        "Step 5: Run sanity checks: string IDs, sorted arrays, rounded floats, deterministic tie-breaks"
+      ]
+    },
+    {
+      "task_name": "manufacturing-fjsp-optimization",
+      "skill_name": "fjsp-baseline-repair-with-downtime-and-policy",
+      "summary": "Pipeline for repairing infeasible FJSP schedules into feasible ones within policy budgets",
+      "steps": [
+        "Step 1: Determine precedence-aware repair order: sort operations by (index, baseline start, base index)",
+        "Step 2: For each operation, compute anchor = max(baseline start, end of previous op of same job)",
+        "Step 3: List only allowed machines; if baseline machine is invalid, replace with feasible one",
+        "Step 4: For each candidate machine, scan forward from anchor to find earliest feasible start",
+        "Step 5: Choose option with smallest lexicographic score, respecting policy budgets",
+        "Step 6: Record the operation on the machine timeline in precedence-aware order"
+      ]
+    },
+    {
+      "task_name": "multilingual-video-dubbing",
+      "skill_name": "text-to-speech",
+      "summary": "Practical mastering steps for TTS audio in video dubbing",
+      "steps": [
+        "Step 1: Choose a TTS engine and confirm native sample rate",
+        "Step 2: Apply speech cleanup per segment: rumble/DC removal, optional low-pass, boundary fades",
+        "Step 3: Measure loudness using ebur128, then apply loudnorm normalization (-23 LUFS / -1.5 dBTP)",
+        "Step 4: Handle timing and segment boundaries: pad short segments, speed-adjust long segments, apply fades"
+      ]
+    },
+    {
+      "task_name": "pddl-tpp-planning",
+      "skill_name": "pddl-skills",
+      "summary": "Automated PDDL planning: load, plan, validate, and save",
+      "steps": [
+        "Step 1: Load domain and problem PDDL files using load_problem()",
+        "Step 2: Generate a plan using generate_plan() with a classical planner",
+        "Step 3: Validate the plan using validate() to ensure goal satisfaction",
+        "Step 4: Save the plan to disk using save_plan()"
+      ]
+    },
+    {
+      "task_name": "pdf-excel-diff",
+      "skill_name": "xlsx",
+      "summary": "Spreadsheet creation, editing, and analysis with mandatory recalculation workflow",
+      "steps": [
+        "Step 1: Choose tool (pandas for data, openpyxl for formulas/formatting)",
+        "Step 2: Create/Load workbook or existing file",
+        "Step 3: Modify — add/edit data, formulas, and formatting",
+        "Step 4: Save to file",
+        "Step 5: Recalculate formulas using recalc.py (mandatory if using formulas)",
+        "Step 6: Verify and fix any errors from recalc output"
+      ]
+    },
+    {
+      "task_name": "pg-essay-to-audiobook",
+      "skill_name": "audiobook",
+      "summary": "End-to-end pipeline for creating audiobooks from web content with TTS provider fallback",
+      "steps": [
+        "Step 1: Fetch web content using curl and verify completeness",
+        "Step 2: Clean and prepare text for TTS (remove URLs, footnotes; chunk at sentence boundaries)",
+        "Step 3: TTS conversion with automatic provider fallback (ElevenLabs -> OpenAI -> gTTS), concatenate with ffmpeg"
+      ]
+    },
+    {
+      "task_name": "powerlifting-coef-calc",
+      "skill_name": "xlsx",
+      "summary": "Spreadsheet creation, editing, and analysis with mandatory recalculation workflow",
+      "steps": [
+        "Step 1: Choose tool (pandas for data, openpyxl for formulas/formatting)",
+        "Step 2: Create/Load workbook or existing file",
+        "Step 3: Modify — add/edit data, formulas, and formatting",
+        "Step 4: Save to file",
+        "Step 5: Recalculate formulas using recalc.py (mandatory if using formulas)",
+        "Step 6: Verify and fix any errors from recalc output"
+      ]
+    },
+    {
+      "task_name": "pptx-reference-formatting",
+      "skill_name": "pptx",
+      "summary": "PowerPoint creation, editing, and analysis with three distinct workflows",
+      "steps": [
+        "Workflow A (new, no template): (1) Read html2pptx.md, (2) Create HTML slides, (3) Convert via html2pptx.js, (4) Visual validation and iterate",
+        "Workflow B (editing existing): (1) Read ooxml.md, (2) Unpack, (3) Edit XML, (4) Validate, (5) Pack",
+        "Workflow C (template-based): (1) Extract text/thumbnails, (2) Analyze template, (3) Create outline, (4) Rearrange slides, (5) Extract inventory, (6) Generate replacement JSON, (7) Apply replacements"
+      ]
+    },
+    {
+      "task_name": "protein-expression-analysis",
+      "skill_name": "xlsx",
+      "summary": "Spreadsheet creation, editing, and analysis with mandatory recalculation workflow",
+      "steps": [
+        "Step 1: Choose tool (pandas for data, openpyxl for formulas/formatting)",
+        "Step 2: Create/Load workbook or existing file",
+        "Step 3: Modify — add/edit data, formulas, and formatting",
+        "Step 4: Save to file",
+        "Step 5: Recalculate formulas using recalc.py (mandatory if using formulas)",
+        "Step 6: Verify and fix any errors from recalc output"
+      ]
+    },
+    {
+      "task_name": "r2r-mpc-control",
+      "skill_name": "finite-horizon-lqr",
+      "summary": "Solving finite-horizon LQR via backward Riccati recursion for MPC applications",
+      "steps": [
+        "Step 1: Initialize P_N = Q (backward Riccati recursion starting point)",
+        "Step 2: Backward pass — compute gain K_k and cost P_k for k = N-1 down to 0",
+        "Step 3: Forward simulation — apply u_k = -K_k @ x_k starting from x_0",
+        "MPC application: (1) Measure current state, (2) Solve finite-horizon LQR, (3) Apply first control u_0, (4) Repeat"
+      ]
+    },
+    {
+      "task_name": "reserves-at-risk-calc",
+      "skill_name": "xlsx",
+      "summary": "Spreadsheet creation, editing, and analysis with mandatory recalculation workflow",
+      "steps": [
+        "Step 1: Choose tool (pandas for data, openpyxl for formulas/formatting)",
+        "Step 2: Create/Load workbook or existing file",
+        "Step 3: Modify — add/edit data, formulas, and formatting",
+        "Step 4: Save to file",
+        "Step 5: Recalculate formulas using recalc.py (mandatory if using formulas)",
+        "Step 6: Verify and fix any errors from recalc output"
+      ]
+    },
+    {
+      "task_name": "shock-analysis-demand",
+      "skill_name": "xlsx",
+      "summary": "Spreadsheet creation, editing, and analysis with mandatory recalculation workflow",
+      "steps": [
+        "Step 1: Choose tool (pandas for data, openpyxl for formulas/formatting)",
+        "Step 2: Create/Load workbook or existing file",
+        "Step 3: Modify — add/edit data, formulas, and formatting",
+        "Step 4: Save to file",
+        "Step 5: Recalculate formulas using recalc.py (mandatory if using formulas)",
+        "Step 6: Verify and fix any errors from recalc output"
+      ]
+    },
+    {
+      "task_name": "shock-analysis-supply",
+      "skill_name": "xlsx",
+      "summary": "Spreadsheet creation, editing, and analysis with mandatory recalculation workflow",
+      "steps": [
+        "Step 1: Choose tool (pandas for data, openpyxl for formulas/formatting)",
+        "Step 2: Create/Load workbook or existing file",
+        "Step 3: Modify — add/edit data, formulas, and formatting",
+        "Step 4: Save to file",
+        "Step 5: Recalculate formulas using recalc.py (mandatory if using formulas)",
+        "Step 6: Verify and fix any errors from recalc output"
+      ]
+    },
+    {
+      "task_name": "simpo-code-reproduction",
+      "skill_name": "nlp-research-repo-package-installment",
+      "summary": "Workflow to align Python version and install dependencies for NLP research code reproduction",
+      "steps": [
+        "Step 1: Read the repo dependency files (environment.yml, requirements.txt)",
+        "Step 2: Log the current environment to /root/python_int.txt",
+        "Step 3: Compare requirements with current environment and set up matching Python using uv"
+      ]
+    },
+    {
+      "task_name": "software-dependency-audit",
+      "skill_name": "trivy-offline-vulnerability-scanning",
+      "summary": "Workflow for running Trivy vulnerability scanner in offline mode",
+      "steps": [
+        "Step 1: Verify the offline Trivy database exists at the expected cache path",
+        "Step 2: Construct the Trivy command with offline flags (--skip-db-update, --offline-scan, --cache-dir)",
+        "Step 3: Execute the scan and handle errors"
+      ]
+    },
+    {
+      "task_name": "suricata-custom-exfil",
+      "skill_name": "suricata-offline-evejson",
+      "summary": "Workflow for running Suricata against PCAPs offline and iterating on rules",
+      "steps": [
+        "Step 1: Run Suricata on a PCAP with offline flags (-r, -S, -l, -k none)",
+        "Step 2: Inspect alerts in eve.json using jq to count and view alert signatures",
+        "Step 3: Iterate: validate rule syntax, run on positive traffic, run on negative traffic"
+      ]
+    },
+    {
+      "task_name": "taxonomy-tree-merge",
+      "skill_name": "hierarchical-taxonomy-clustering",
+      "summary": "4-step pipeline to build a unified taxonomy from hierarchical product paths",
+      "steps": [
+        "Step 1: Load, standardize, filter, and merge category paths from multiple sources",
+        "Step 2: Generate weighted embeddings with exponential decay weights per hierarchy level",
+        "Step 3: Recursive clustering with average linkage + cosine distance and intelligent naming",
+        "Step 4: Export results as unified taxonomy CSV files"
+      ]
+    },
+    {
+      "task_name": "threejs-structure-parser",
+      "skill_name": "threejs",
+      "summary": "Workflow for Three.js scene graph parsing and per-link OBJ/URDF export",
+      "steps": [
+        "Step 1: Load the module, call createScene(), then updateMatrixWorld(true)",
+        "Step 2: Treat named THREE.Group nodes as parts/links",
+        "Step 3: Assign each mesh to its nearest named ancestor",
+        "Step 4: Bake world transforms into geometry before export",
+        "Step 5: Export per-part OBJ (and optionally URDF) using deterministic ordering"
+      ]
+    },
+    {
+      "task_name": "threejs-to-obj",
+      "skill_name": "threejs",
+      "summary": "Workflow for Three.js scene graph parsing and per-link OBJ/URDF export",
+      "steps": [
+        "Step 1: Load the module, call createScene(), then updateMatrixWorld(true)",
+        "Step 2: Treat named THREE.Group nodes as parts/links",
+        "Step 3: Assign each mesh to its nearest named ancestor",
+        "Step 4: Bake world transforms into geometry before export",
+        "Step 5: Export per-part OBJ (and optionally URDF) using deterministic ordering"
+      ]
+    },
+    {
+      "task_name": "virtualhome-agent-planning",
+      "skill_name": "pddl-skills",
+      "summary": "Automated PDDL planning: load, plan, validate, and save",
+      "steps": [
+        "Step 1: Load PDDL domain and problem files using load_problem()",
+        "Step 2: Generate a plan using generate_plan() with a classical planner",
+        "Step 3: Validate the plan using validate() to confirm goal satisfaction",
+        "Step 4: Save the plan to disk using save_plan()"
+      ]
+    },
+    {
+      "task_name": "weighted-gdp-calc",
+      "skill_name": "xlsx",
+      "summary": "Spreadsheet creation, editing, and analysis with mandatory recalculation workflow",
+      "steps": [
+        "Step 1: Choose tool (pandas for data, openpyxl for formulas/formatting)",
+        "Step 2: Create/Load workbook or existing file",
+        "Step 3: Modify — add/edit data, formulas, and formatting",
+        "Step 4: Save to file",
+        "Step 5: Recalculate formulas using recalc.py (mandatory if using formulas)",
+        "Step 6: Verify and fix any errors from recalc output"
+      ]
+    },
+    {
+      "task_name": "xlsx-recover-data",
+      "skill_name": "xlsx",
+      "summary": "Spreadsheet creation, editing, and analysis with mandatory recalculation workflow",
+      "steps": [
+        "Step 1: Choose tool (pandas for data, openpyxl for formulas/formatting)",
+        "Step 2: Create/Load workbook or existing file",
+        "Step 3: Modify — add/edit data, formulas, and formatting",
+        "Step 4: Save to file",
+        "Step 5: Recalculate formulas using recalc.py (mandatory if using formulas)",
+        "Step 6: Verify and fix any errors from recalc output"
+      ]
+    }
+  ]
+}
