@@ -53,6 +53,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 from urllib import request, error as urlerror
 
+from traj_cleaner import clean_trajectory
+
 
 ROOT = Path(__file__).resolve().parent
 TASKS_ROOT = ROOT / "tasks"
@@ -93,7 +95,7 @@ class Config:
     json_mode: bool = os.environ.get("FUZZ_JSON_MODE", "1") != "0"
 
     # Truncation caps for artifacts sent to the eval LLM (chars).
-    max_trajectory_chars: int = int(os.environ.get("FUZZ_MAX_TRAJ_CHARS", "20000"))
+    max_trajectory_chars: int = int(os.environ.get("FUZZ_MAX_TRAJ_CHARS", "60000"))
     max_verifier_chars: int = int(os.environ.get("FUZZ_MAX_VERIFIER_CHARS", "4000"))
     max_harbor_stdout_chars: int = int(os.environ.get("FUZZ_MAX_HARBOR_CHARS", "4000"))
 
@@ -377,12 +379,15 @@ def read_trial_artifacts(trial_dir: Path) -> Dict[str, Any]:
 
 
 def build_eval_payload(cfg: Config, query: str, artifacts: Dict[str, Any]) -> Dict[str, Any]:
-    """Trim artifacts to a size that fits comfortably in the LLM context."""
+    """Clean and trim artifacts to a size that fits comfortably in the LLM context."""
     traj = artifacts.get("trajectory")
     if isinstance(traj, (dict, list)):
         traj_str = json.dumps(traj, ensure_ascii=False)
+    elif isinstance(traj, str):
+        # Clean raw stream-json: strip session_id/uuid/usage/skill-guides/etc.
+        traj_str = clean_trajectory(traj)
     else:
-        traj_str = traj if isinstance(traj, str) else None
+        traj_str = None
 
     # Keep only the most informative fields from result.json so we don't blow
     # the context on agent_info / timing boilerplate.

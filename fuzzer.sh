@@ -48,7 +48,7 @@ export FUZZ_MAX_ITERS="${FUZZ_MAX_ITERS:-5}"
 # export FUZZ_TASKS="citation-check,hvac-control"
 
 # Artifact truncation caps (chars) sent to the eval LLM.
-export FUZZ_MAX_TRAJ_CHARS="${FUZZ_MAX_TRAJ_CHARS:-20000}"
+export FUZZ_MAX_TRAJ_CHARS="${FUZZ_MAX_TRAJ_CHARS:-60000}"
 export FUZZ_MAX_VERIFIER_CHARS="${FUZZ_MAX_VERIFIER_CHARS:-4000}"
 export FUZZ_MAX_HARBOR_CHARS="${FUZZ_MAX_HARBOR_CHARS:-4000}"
 
