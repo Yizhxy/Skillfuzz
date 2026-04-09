@@ -34,8 +34,9 @@ export FUZZ_MUTATE_TEMP="${FUZZ_MUTATE_TEMP:-0.8}"
 # Harbor runner
 # --------------------------------------------------------------------
 export HARBOR_BIN="${HARBOR_BIN:-harbor}"
+export HARBOR_CWD="${HARBOR_CWD:-/data/hxy/skillsbench-main}"
 export HARBOR_AGENT="${HARBOR_AGENT:-claude-code}"
-export HARBOR_MODEL="${HARBOR_MODEL:-anthropic/claude-opus-4-1}"
+export HARBOR_MODEL="${HARBOR_MODEL:-claude-haiku-4-5-20251001}"
 export HARBOR_DELETE="${HARBOR_DELETE:-1}"
 
 # --------------------------------------------------------------------

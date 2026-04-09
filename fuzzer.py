@@ -28,8 +28,10 @@ Intermediate files layout (all under FUZZ_WORK_ROOT, default ./fuzz_runs):
       iter_0000/
         query.md                            # query used as input for this iteration
         task/                               # isolated copy of tasks/<task_name>/ with patched instruction.md
-        run/                                # harbor working dir (contains trials/)
-        harbor_stdout.txt                   # captured harbor CLI output
+        jobs/                               # harbor --jobs-dir (contains <job_name>/<trial_name>/)
+          job/
+            <task>__<hash>/                 # trial dir (result.json, agent/, verifier/, ...)
+        harbor_stdout.txt                   # captured `harbor run` CLI output
         artifacts.json                      # trajectory / reward / verifier summary
         eval.json                           # eval LLM JSON output
         mutate.json                         # mutate LLM JSON output (contains next_query)
@@ -68,8 +70,9 @@ MUTATE_PROMPT_FILE = PROMPTS_ROOT / "mutate.txt"
 class Config:
     # Harbor
     harbor_bin: str = os.environ.get("HARBOR_BIN", "harbor")
+    harbor_cwd: str = os.environ.get("HARBOR_CWD", "/data/hxy/skillsbench-main")
     agent_name: str = os.environ.get("HARBOR_AGENT", "claude-code")
-    model_name: str = os.environ.get("HARBOR_MODEL", "anthropic/claude-opus-4-1")
+    model_name: str = os.environ.get("HARBOR_MODEL", "claude-haiku-4-5-20251001")
     prefer_delete_flag: bool = os.environ.get("HARBOR_DELETE", "1") != "0"
 
     # LLM (OpenAI-compatible)
@@ -196,49 +199,64 @@ def stage_task_copy(src_task_dir: Path, dst_task_dir: Path, query: str) -> Path:
     return dst_task_dir
 
 
-def find_latest_trial_dir(trials_root: Path, after_epoch: float) -> Optional[Path]:
-    if not trials_root.exists():
+def find_trial_dir(job_dir: Path) -> Optional[Path]:
+    """
+    Given a single-job dir produced by `harbor run --jobs-dir <jobs> --job-name <job>`,
+    return the sole trial subdirectory (named `<task>__<hash>`). If multiple exist,
+    return the most recently modified one.
+    """
+    if not job_dir.exists():
         return None
-    candidates = []
-    for p in trials_root.iterdir():
-        if p.is_dir():
-            mtime = p.stat().st_mtime
-            if mtime >= after_epoch - 1.0:
-                candidates.append((mtime, p))
-    if not candidates:
-        all_dirs = [(p.stat().st_mtime, p) for p in trials_root.iterdir() if p.is_dir()]
-        if not all_dirs:
-            return None
-        return sorted(all_dirs, key=lambda x: x[0], reverse=True)[0][1]
-    return sorted(candidates, key=lambda x: x[0], reverse=True)[0][1]
+    trial_dirs = [p for p in job_dir.iterdir() if p.is_dir()]
+    if not trial_dirs:
+        return None
+    if len(trial_dirs) == 1:
+        return trial_dirs[0]
+    return sorted(trial_dirs, key=lambda p: p.stat().st_mtime, reverse=True)[0]
 
 
-def run_harbor_trial(cfg: Config, task_dir: Path, run_dir: Path) -> Tuple[int, str, Optional[Path]]:
+def run_harbor_trial(
+    cfg: Config, task_dir: Path, iter_dir: Path
+) -> Tuple[int, str, Optional[Path]]:
     """
-    Runs: harbor trials start -p <task_dir> -a <agent> -m <model> [--delete]
-    inside run_dir, so outputs land under run_dir/trials/.
-    Returns (exit_code, combined_stdout, trial_output_dir_or_None).
+    Runs:
+      harbor run -p <task_dir> -a <agent> -m <model>
+                 -o <iter_dir>/jobs --job-name job -q [--delete/--no-delete]
+    Harbor will then create <iter_dir>/jobs/job/<task>__<hash>/ with the full
+    trial layout (result.json, config.json, agent/, verifier/, artifacts/, trial.log).
+
+    Returns (exit_code, combined_stdout, trial_dir_or_None).
     """
-    run_dir.mkdir(parents=True, exist_ok=True)
+    jobs_dir = iter_dir / "jobs"
+    jobs_dir.mkdir(parents=True, exist_ok=True)
+    job_name = "job"
 
     base_cmd = [
-        cfg.harbor_bin, "trials", "start",
+        cfg.harbor_bin, "run",
         "-p", str(task_dir),
         "-a", cfg.agent_name,
         "-m", cfg.model_name,
+        "-o", str(jobs_dir),
+        "--job-name", job_name,
+        "-q",
     ]
 
     attempts: List[List[str]] = []
     if cfg.prefer_delete_flag:
         attempts.append(base_cmd + ["--delete"])
-    attempts.append(base_cmd)
+    else:
+        attempts.append(base_cmd + ["--no-delete"])
+    attempts.append(base_cmd)  # fallback: no delete flag at all
 
-    t0 = time.time()
+    # Harbor resolves task paths relative to its own cwd, but we pass an
+    # absolute path for -p, so cwd mainly affects where any stray outputs land.
+    harbor_cwd = cfg.harbor_cwd if os.path.isdir(cfg.harbor_cwd) else str(iter_dir)
+
     last_cp: Optional[subprocess.CompletedProcess] = None
     for cmd in attempts:
         cp = subprocess.run(
             cmd,
-            cwd=str(run_dir),
+            cwd=harbor_cwd,
             env=os.environ.copy(),
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
@@ -248,8 +266,9 @@ def run_harbor_trial(cfg: Config, task_dir: Path, run_dir: Path) -> Tuple[int, s
         out = strip_ansi(cp.stdout or "")
         if cp.returncode == 0:
             break
-        # retry without --delete if the CLI doesn't recognise it
-        if "--delete" in cmd and ("No such option" in out or "unknown option" in out):
+        if ("--delete" in cmd or "--no-delete" in cmd) and (
+            "No such option" in out or "unknown option" in out
+        ):
             continue
         break
 
@@ -257,52 +276,102 @@ def run_harbor_trial(cfg: Config, task_dir: Path, run_dir: Path) -> Tuple[int, s
     combined_out = strip_ansi(last_cp.stdout or "")
     exit_code = last_cp.returncode
 
-    trial_dir = find_latest_trial_dir(run_dir / "trials", after_epoch=t0)
+    trial_dir = find_trial_dir(jobs_dir / job_name)
     return exit_code, combined_out, trial_dir
 
 
 def read_trial_artifacts(trial_dir: Path) -> Dict[str, Any]:
-    """Reads common Harbor trial outputs."""
+    """
+    Reads the `harbor run` trial layout:
+        <trial_dir>/
+            result.json          # verifier_result.rewards.reward, timing, config
+            config.json
+            trial.log
+            agent/
+                claude-code.txt  # full agent stream-json output (trajectory)
+                install.sh
+                command-0/{command.txt,return-code.txt,stdout.txt?}
+                command-1/{command.txt,return-code.txt,stdout.txt?}
+                setup/
+                sessions/
+            verifier/
+                reward.txt       # scalar reward
+                ctrf.json        # structured test report
+                test-stdout.txt  # verifier stdout
+            artifacts/
+    """
     artifacts: Dict[str, Any] = {"trial_dir": str(trial_dir)}
 
-    traj_path = trial_dir / "agent" / "trajectory.json"
+    # --- trajectory: agent/claude-code.txt (raw stream-json lines) ---
+    traj_path = trial_dir / "agent" / "claude-code.txt"
     if traj_path.exists():
-        try:
-            artifacts["trajectory"] = json.loads(traj_path.read_text(encoding="utf-8"))
-        except Exception:
-            artifacts["trajectory"] = traj_path.read_text(encoding="utf-8", errors="replace")
+        artifacts["trajectory"] = traj_path.read_text(encoding="utf-8", errors="replace")
+        artifacts["trajectory_path"] = str(traj_path)
     else:
         artifacts["trajectory"] = None
+        artifacts["trajectory_path"] = None
 
+    # --- reward: verifier/reward.txt (fallback to result.json) ---
     reward_txt = trial_dir / "verifier" / "reward.txt"
-    reward_json = trial_dir / "verifier" / "reward.json"
+    reward: Any = None
     if reward_txt.exists():
+        raw = reward_txt.read_text(encoding="utf-8").strip()
         try:
-            artifacts["reward"] = float(reward_txt.read_text(encoding="utf-8").strip())
+            reward = float(raw)
         except Exception:
-            artifacts["reward"] = reward_txt.read_text(encoding="utf-8").strip()
-    elif reward_json.exists():
-        try:
-            artifacts["reward"] = json.loads(reward_json.read_text(encoding="utf-8"))
-        except Exception:
-            artifacts["reward"] = reward_json.read_text(encoding="utf-8", errors="replace")
-    else:
-        artifacts["reward"] = None
+            reward = raw
+    artifacts["reward"] = reward
 
+    # --- result.json (trial-level) ---
     result_json = trial_dir / "result.json"
+    result_obj: Any = None
     if result_json.exists():
         try:
-            artifacts["result"] = json.loads(result_json.read_text(encoding="utf-8"))
+            result_obj = json.loads(result_json.read_text(encoding="utf-8"))
         except Exception:
-            artifacts["result"] = result_json.read_text(encoding="utf-8", errors="replace")
-    else:
-        artifacts["result"] = None
+            result_obj = result_json.read_text(encoding="utf-8", errors="replace")
+    artifacts["result"] = result_obj
 
-    verifier_out = trial_dir / "verifier" / "test-stdout.txt"
-    if verifier_out.exists():
-        artifacts["verifier_stdout"] = verifier_out.read_text(encoding="utf-8", errors="replace")
+    # If reward.txt was missing, try result.json -> verifier_result.rewards.reward
+    if artifacts["reward"] is None and isinstance(result_obj, dict):
+        try:
+            artifacts["reward"] = result_obj["verifier_result"]["rewards"]["reward"]
+        except Exception:
+            pass
+
+    # --- exception info (if the trial crashed) ---
+    if isinstance(result_obj, dict):
+        artifacts["exception_info"] = result_obj.get("exception_info")
     else:
-        artifacts["verifier_stdout"] = None
+        artifacts["exception_info"] = None
+
+    # --- verifier stdout + structured CTRF report ---
+    verifier_out = trial_dir / "verifier" / "test-stdout.txt"
+    artifacts["verifier_stdout"] = (
+        verifier_out.read_text(encoding="utf-8", errors="replace")
+        if verifier_out.exists() else None
+    )
+
+    ctrf_path = trial_dir / "verifier" / "ctrf.json"
+    if ctrf_path.exists():
+        try:
+            artifacts["verifier_ctrf"] = json.loads(ctrf_path.read_text(encoding="utf-8"))
+        except Exception:
+            artifacts["verifier_ctrf"] = ctrf_path.read_text(encoding="utf-8", errors="replace")
+    else:
+        artifacts["verifier_ctrf"] = None
+
+    # --- agent command return codes (0 = setup, 1 = main agent command) ---
+    cmd_rcs: Dict[str, Any] = {}
+    for sub in sorted((trial_dir / "agent").glob("command-*")) if (trial_dir / "agent").exists() else []:
+        rc_file = sub / "return-code.txt"
+        if rc_file.exists():
+            raw = rc_file.read_text(encoding="utf-8").strip()
+            try:
+                cmd_rcs[sub.name] = int(raw)
+            except Exception:
+                cmd_rcs[sub.name] = raw
+    artifacts["agent_command_return_codes"] = cmd_rcs or None
 
     return artifacts
 
@@ -315,12 +384,29 @@ def build_eval_payload(cfg: Config, query: str, artifacts: Dict[str, Any]) -> Di
     else:
         traj_str = traj if isinstance(traj, str) else None
 
+    # Keep only the most informative fields from result.json so we don't blow
+    # the context on agent_info / timing boilerplate.
+    result_summary: Any = None
+    result = artifacts.get("result")
+    if isinstance(result, dict):
+        result_summary = {
+            "task_name": result.get("task_name"),
+            "trial_name": result.get("trial_name"),
+            "verifier_result": result.get("verifier_result"),
+            "exception_info": result.get("exception_info"),
+            "started_at": result.get("started_at"),
+            "finished_at": result.get("finished_at"),
+        }
+
     return {
         "query": query,
         "harbor_exit_code": artifacts.get("harbor_exit_code"),
         "reward": artifacts.get("reward"),
-        "result": artifacts.get("result"),
+        "result": result_summary,
+        "exception_info": artifacts.get("exception_info"),
+        "agent_command_return_codes": artifacts.get("agent_command_return_codes"),
         "verifier_stdout": clip(artifacts.get("verifier_stdout"), cfg.max_verifier_chars),
+        "verifier_ctrf": artifacts.get("verifier_ctrf"),
         "harbor_stdout_tail": clip(artifacts.get("harbor_stdout"), cfg.max_harbor_stdout_chars),
         "trajectory": clip(traj_str, cfg.max_trajectory_chars),
     }
@@ -402,11 +488,10 @@ class TaskFuzzer:
 
         # --- 1) Stage task copy + run Harbor trial ---
         staged_task_dir = iter_dir / "task"
-        run_dir = iter_dir / "run"
         stage_task_copy(self.src_task_dir, staged_task_dir, query)
 
         code, harbor_out, trial_dir = run_harbor_trial(
-            self.cfg, task_dir=staged_task_dir, run_dir=run_dir
+            self.cfg, task_dir=staged_task_dir, iter_dir=iter_dir
         )
         save_text(iter_dir / "harbor_stdout.txt", harbor_out)
         print(f"[INFO] {self.task_name} iter {i:04d}: harbor exit_code={code}")
