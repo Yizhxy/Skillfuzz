@@ -11,6 +11,14 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "${SCRIPT_DIR}"
 
 # --------------------------------------------------------------------
+# TLS trust store
+# Conda Pythons ship their own OpenSSL and don't read the system CA bundle,
+# so urllib in fuzzer.py would fail with CERTIFICATE_VERIFY_FAILED. Point it
+# at the system bundle (override by exporting SSL_CERT_FILE before running).
+# --------------------------------------------------------------------
+export SSL_CERT_FILE="${SSL_CERT_FILE:-/etc/ssl/certs/ca-certificates.crt}"
+
+# --------------------------------------------------------------------
 # Anthropic / Claude Code (used by Harbor's claude-code agent)
 # --------------------------------------------------------------------
 export ANTHROPIC_BASE_URL="https://api.v3.cm"

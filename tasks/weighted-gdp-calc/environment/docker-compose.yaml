@@ -1,0 +1,8 @@
+services:
+  main:
+    network_mode: host
+    environment:
+      http_proxy: "http://127.0.0.1:20171"
+      https_proxy: "http://127.0.0.1:20171"
+      HTTP_PROXY: "http://127.0.0.1:20171"
+      HTTPS_PROXY: "http://127.0.0.1:20171"
