@@ -571,6 +571,8 @@ class TaskFuzzer:
             "aligned": eval_result.get("aligned"),
             "deviation": eval_result.get("deviation"),
             "mutation_type": mutate_result.get("mutation_type"),
+            "history_insight": mutate_result.get("history_insight"),
+            "delta_from_original": mutate_result.get("delta_from_original"),
             "rationale": mutate_result.get("rationale"),
         }
 
