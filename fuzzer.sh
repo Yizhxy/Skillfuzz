@@ -52,6 +52,8 @@ export HARBOR_DELETE="${HARBOR_DELETE:-1}"
 # --------------------------------------------------------------------
 export FUZZ_WORK_ROOT="${FUZZ_WORK_ROOT:-${SCRIPT_DIR}/fuzz_runs}"
 export FUZZ_MAX_ITERS="${FUZZ_MAX_ITERS:-5}"
+# How many tasks to fuzz in parallel (1 = sequential, default).
+export FUZZ_PARALLEL="${FUZZ_PARALLEL:-1}"
 # Optional: comma-separated task names to restrict which tasks are fuzzed.
 # export FUZZ_TASKS="citation-check,hvac-control"
 
@@ -64,6 +66,7 @@ mkdir -p "${FUZZ_WORK_ROOT}"
 
 echo "[fuzzer.sh] work_root   = ${FUZZ_WORK_ROOT}"
 echo "[fuzzer.sh] max_iters   = ${FUZZ_MAX_ITERS}"
+echo "[fuzzer.sh] parallel    = ${FUZZ_PARALLEL}"
 echo "[fuzzer.sh] llm_model   = ${LLM_MODEL}"
 echo "[fuzzer.sh] harbor      = ${HARBOR_BIN} (agent=${HARBOR_AGENT}, model=${HARBOR_MODEL})"
 if [[ -n "${FUZZ_TASKS:-}" ]]; then

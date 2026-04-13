@@ -48,6 +48,8 @@ import json
 import time
 import shutil
 import subprocess
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -98,6 +100,9 @@ class Config:
     max_trajectory_chars: int = int(os.environ.get("FUZZ_MAX_TRAJ_CHARS", "60000"))
     max_verifier_chars: int = int(os.environ.get("FUZZ_MAX_VERIFIER_CHARS", "4000"))
     max_harbor_stdout_chars: int = int(os.environ.get("FUZZ_MAX_HARBOR_CHARS", "4000"))
+
+    # Parallelism: how many tasks to fuzz concurrently (1 = sequential).
+    parallel: int = int(os.environ.get("FUZZ_PARALLEL", "1"))
 
 
 # --------------------------
@@ -579,6 +584,44 @@ def _parse_task_filter() -> Optional[set]:
     return {s.strip() for s in only.split(",") if s.strip()}
 
 
+def _run_task(
+    cfg: Config,
+    name: str,
+    wf: Dict[str, Any],
+    manifest: Path,
+    manifest_lock: threading.Lock,
+) -> None:
+    """Fuzz a single task for cfg.max_iters iterations. Thread-safe."""
+    print(f"\n[INFO] ===== Task: {name} =====")
+    try:
+        fz = TaskFuzzer(cfg, task_name=name, workflow=wf)
+    except Exception as e:
+        print(f"[ERROR] failed to init fuzzer for {name}: {e}")
+        return
+
+    start_iter = int(fz.state["iter"])
+    target_iter = start_iter + cfg.max_iters
+    print(f"[INFO] {name}: resume from iter={start_iter}, target={target_iter}")
+
+    while int(fz.state["iter"]) < target_iter:
+        current_iter = int(fz.state["iter"])
+        try:
+            record = fz.step()
+        except Exception as e:
+            print(f"[ERROR] {name} iter {current_iter}: {e}")
+            break
+
+        with manifest_lock:
+            with manifest.open("a", encoding="utf-8") as f:
+                f.write(json.dumps(record, ensure_ascii=False) + "\n")
+        print(
+            f"[INFO] {name} iter {record['iter']:04d}: "
+            f"reward={record.get('reward')} "
+            f"aligned={record.get('aligned')} deviation={record.get('deviation')} "
+            f"mutation={record.get('mutation_type')}"
+        )
+
+
 def main() -> None:
     cfg = Config()
     cfg.work_root.mkdir(parents=True, exist_ok=True)
@@ -587,49 +630,47 @@ def main() -> None:
     only_set = _parse_task_filter()
 
     manifest = cfg.work_root / "manifest.jsonl"
+    manifest_lock = threading.Lock()
+
     print(f"[INFO] work_root    = {cfg.work_root}")
     print(f"[INFO] manifest     = {manifest}")
     print(f"[INFO] harbor       = {cfg.harbor_bin} (agent={cfg.agent_name}, model={cfg.model_name})")
     print(f"[INFO] eval/mutate  = {cfg.llm_model}")
     print(f"[INFO] tasks loaded = {len(workflows)}")
     print(f"[INFO] max_iters    = {cfg.max_iters} (per task, per run)")
+    print(f"[INFO] parallel     = {cfg.parallel}")
     if only_set:
         print(f"[INFO] task filter  = {sorted(only_set)}")
 
+    # Collect valid tasks to fuzz.
+    task_items: List[Tuple[str, Dict[str, Any]]] = []
     for name, wf in workflows.items():
         if only_set and name not in only_set:
             continue
         if not (TASKS_ROOT / name).exists():
             print(f"[WARN] task dir missing on disk: {name} — skipping.")
             continue
+        task_items.append((name, wf))
 
-        print(f"\n[INFO] ===== Task: {name} =====")
-        try:
-            fz = TaskFuzzer(cfg, task_name=name, workflow=wf)
-        except Exception as e:
-            print(f"[ERROR] failed to init fuzzer for {name}: {e}")
-            continue
-
-        start_iter = int(fz.state["iter"])
-        target_iter = start_iter + cfg.max_iters
-        print(f"[INFO] resume from iter={start_iter}, target={target_iter}")
-
-        while int(fz.state["iter"]) < target_iter:
-            current_iter = int(fz.state["iter"])
-            try:
-                record = fz.step()
-            except Exception as e:
-                print(f"[ERROR] {name} iter {current_iter}: {e}")
-                break
-
-            with manifest.open("a", encoding="utf-8") as f:
-                f.write(json.dumps(record, ensure_ascii=False) + "\n")
-            print(
-                f"[INFO] {name} iter {record['iter']:04d}: "
-                f"reward={record.get('reward')} "
-                f"aligned={record.get('aligned')} deviation={record.get('deviation')} "
-                f"mutation={record.get('mutation_type')}"
-            )
+    if cfg.parallel <= 1:
+        # Sequential mode (original behaviour).
+        for name, wf in task_items:
+            _run_task(cfg, name, wf, manifest, manifest_lock)
+    else:
+        # Parallel mode: fuzz up to cfg.parallel tasks concurrently.
+        workers = min(cfg.parallel, len(task_items))
+        print(f"[INFO] launching {workers} parallel workers for {len(task_items)} tasks")
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            futures = {
+                pool.submit(_run_task, cfg, name, wf, manifest, manifest_lock): name
+                for name, wf in task_items
+            }
+            for fut in as_completed(futures):
+                task_name = futures[fut]
+                try:
+                    fut.result()
+                except Exception as e:
+                    print(f"[ERROR] task {task_name} failed: {e}")
 
     print("\n[INFO] Done.")
 
