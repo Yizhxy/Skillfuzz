@@ -468,11 +468,17 @@ class TaskFuzzer:
 
         workflow_json_str = json.dumps(workflow, ensure_ascii=False, indent=2)
 
+        # Load full SKILL.md for the task's skill
+        skill_name = workflow.get("skill_name", "")
+        skill_md_path = self.src_task_dir / "environment" / "skills" / skill_name / "SKILL.md"
+        skill_md_content = load_text(skill_md_path).strip() if skill_md_path.exists() else ""
+
         if not self.eval_history:
             tpl = load_text(EVAL_PROMPT_FILE)
             self.eval_history = [{
                 "role": "system",
-                "content": render_prompt(tpl, workflow_json=workflow_json_str),
+                "content": render_prompt(tpl, workflow_json=workflow_json_str,
+                                         skill_md=skill_md_content),
             }]
 
         if not self.mutate_history:
@@ -480,7 +486,8 @@ class TaskFuzzer:
             self.mutate_history = [{
                 "role": "system",
                 "content": render_prompt(tpl, workflow_json=workflow_json_str,
-                                         original_query=self.original_query),
+                                         original_query=self.original_query,
+                                         skill_md=skill_md_content),
             }]
 
         self._persist()

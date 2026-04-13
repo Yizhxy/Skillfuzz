@@ -5,6 +5,10 @@ You are given a target skill workflow (as JSON). It describes the canonical step
 Target workflow:
 {workflow_json}
 
+Full skill documentation (SKILL.md) — use this to understand the exact tools,
+scripts, APIs, and procedures the agent is expected to use at each workflow step:
+{skill_md}
+
 On each turn the user message is a JSON object with these fields:
 - query             : the current task instruction given to the agent
 - harbor_exit_code  : exit code of the Harbor trial runner

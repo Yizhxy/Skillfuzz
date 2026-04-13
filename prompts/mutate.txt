@@ -10,6 +10,11 @@ task. All previous turns are kept in your conversation history — you MUST use 
 Target workflow:
 {workflow_json}
 
+Full skill documentation (SKILL.md) — understand the exact tools, scripts, and
+procedures so you know which details are critical to preserve and which the agent
+can infer from the skill guide:
+{skill_md}
+
 Original instruction (semantic anchor — defines the boundary of valid mutations):
 {original_query}
 
