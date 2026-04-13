@@ -461,9 +461,10 @@ class TaskFuzzer:
         self.eval_history: List[Dict[str, str]] = load_json(self.eval_hist_path, [])
         self.mutate_history: List[Dict[str, str]] = load_json(self.mutate_hist_path, [])
 
+        self.original_query = load_text(self.src_task_dir / "instruction.md").strip()
+
         if self.state.get("current_query") is None:
-            instruction = load_text(self.src_task_dir / "instruction.md").strip()
-            self.state["current_query"] = instruction
+            self.state["current_query"] = self.original_query
 
         workflow_json_str = json.dumps(workflow, ensure_ascii=False, indent=2)
 
@@ -478,7 +479,8 @@ class TaskFuzzer:
             tpl = load_text(MUTATE_PROMPT_FILE)
             self.mutate_history = [{
                 "role": "system",
-                "content": render_prompt(tpl, workflow_json=workflow_json_str),
+                "content": render_prompt(tpl, workflow_json=workflow_json_str,
+                                         original_query=self.original_query),
             }]
 
         self._persist()
