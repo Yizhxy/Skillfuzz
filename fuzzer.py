@@ -83,7 +83,7 @@ class Config:
     llm_api_base: str = os.environ.get("LLM_API_BASE", "https://api.openai.com")
     llm_api_key: str = os.environ.get("LLM_API_KEY", os.environ.get("OPENAI_API_KEY", ""))
     llm_model: str = os.environ.get("LLM_MODEL", "gpt-4o-mini")
-    llm_timeout_sec: int = int(os.environ.get("LLM_TIMEOUT_SEC", "120"))
+    llm_timeout_sec: int = int(os.environ.get("LLM_TIMEOUT_SEC", "300"))
 
     # Work dirs / loop
     work_root: Path = Path(os.environ.get("FUZZ_WORK_ROOT", str(ROOT / "fuzz_runs"))).resolve()
@@ -97,9 +97,9 @@ class Config:
     json_mode: bool = os.environ.get("FUZZ_JSON_MODE", "1") != "0"
 
     # Truncation caps for artifacts sent to the eval LLM (chars).
-    max_trajectory_chars: int = int(os.environ.get("FUZZ_MAX_TRAJ_CHARS", "60000"))
-    max_verifier_chars: int = int(os.environ.get("FUZZ_MAX_VERIFIER_CHARS", "4000"))
-    max_harbor_stdout_chars: int = int(os.environ.get("FUZZ_MAX_HARBOR_CHARS", "4000"))
+    max_trajectory_chars: int = int(os.environ.get("FUZZ_MAX_TRAJ_CHARS", "200000"))
+    max_verifier_chars: int = int(os.environ.get("FUZZ_MAX_VERIFIER_CHARS", "16000"))
+    max_harbor_stdout_chars: int = int(os.environ.get("FUZZ_MAX_HARBOR_CHARS", "16000"))
 
     # Parallelism: how many tasks to fuzz concurrently (1 = sequential).
     parallel: int = int(os.environ.get("FUZZ_PARALLEL", "1"))
