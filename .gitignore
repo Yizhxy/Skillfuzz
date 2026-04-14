@@ -8,3 +8,6 @@ __pycache__/
 
 # Fuzzer run artifacts
 fuzz_runs*/
+
+# Terminal logs
+logs/

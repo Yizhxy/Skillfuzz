@@ -56,7 +56,8 @@ export HARBOR_DELETE="${HARBOR_DELETE:-1}"
 # --------------------------------------------------------------------
 # Fuzz loop
 # --------------------------------------------------------------------
-export FUZZ_WORK_ROOT="${FUZZ_WORK_ROOT:-${SCRIPT_DIR}/fuzz_runs_$(date +%Y%m%d_%H%M%S)}"
+RUN_TS="$(date +%Y%m%d_%H%M%S)"
+export FUZZ_WORK_ROOT="${FUZZ_WORK_ROOT:-${SCRIPT_DIR}/fuzz_runs_${RUN_TS}}"
 export FUZZ_MAX_ITERS="${FUZZ_MAX_ITERS:-5}"
 # How many tasks to fuzz in parallel (1 = sequential, default).
 export FUZZ_PARALLEL="${FUZZ_PARALLEL:-1}"
@@ -70,13 +71,21 @@ export FUZZ_MAX_HARBOR_CHARS="${FUZZ_MAX_HARBOR_CHARS:-4000}"
 
 mkdir -p "${FUZZ_WORK_ROOT}"
 
+# --------------------------------------------------------------------
+# Logging — mirror terminal output to logs/<timestamp>.log
+# --------------------------------------------------------------------
+LOG_DIR="${SCRIPT_DIR}/logs"
+mkdir -p "${LOG_DIR}"
+LOG_FILE="${LOG_DIR}/${RUN_TS}.log"
+
 echo "[fuzzer.sh] work_root   = ${FUZZ_WORK_ROOT}"
 echo "[fuzzer.sh] max_iters   = ${FUZZ_MAX_ITERS}"
 echo "[fuzzer.sh] parallel    = ${FUZZ_PARALLEL}"
 echo "[fuzzer.sh] llm_model   = ${LLM_MODEL}"
 echo "[fuzzer.sh] harbor      = ${HARBOR_BIN} (agent=${HARBOR_AGENT}, model=${HARBOR_MODEL})"
+echo "[fuzzer.sh] log_file    = ${LOG_FILE}"
 if [[ -n "${FUZZ_TASKS:-}" ]]; then
     echo "[fuzzer.sh] task filter = ${FUZZ_TASKS}"
 fi
 
-exec python3 "${SCRIPT_DIR}/fuzzer.py" "$@"
+exec python3 -u "${SCRIPT_DIR}/fuzzer.py" "$@" 2>&1 | tee "${LOG_FILE}"
