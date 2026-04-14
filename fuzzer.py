@@ -86,7 +86,12 @@ class Config:
     llm_timeout_sec: int = int(os.environ.get("LLM_TIMEOUT_SEC", "300"))
 
     # Work dirs / loop
-    work_root: Path = Path(os.environ.get("FUZZ_WORK_ROOT", str(ROOT / "fuzz_runs"))).resolve()
+    work_root: Path = Path(
+        os.environ.get(
+            "FUZZ_WORK_ROOT",
+            str(ROOT / f"fuzz_runs_{time.strftime('%Y%m%d_%H%M%S')}"),
+        )
+    ).resolve()
     max_iters: int = int(os.environ.get("FUZZ_MAX_ITERS", "5"))
 
     eval_temperature: float = float(os.environ.get("FUZZ_EVAL_TEMP", "0.2"))

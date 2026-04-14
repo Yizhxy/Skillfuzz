@@ -56,7 +56,7 @@ export HARBOR_DELETE="${HARBOR_DELETE:-1}"
 # --------------------------------------------------------------------
 # Fuzz loop
 # --------------------------------------------------------------------
-export FUZZ_WORK_ROOT="${FUZZ_WORK_ROOT:-${SCRIPT_DIR}/fuzz_runs}"
+export FUZZ_WORK_ROOT="${FUZZ_WORK_ROOT:-${SCRIPT_DIR}/fuzz_runs_$(date +%Y%m%d_%H%M%S)}"
 export FUZZ_MAX_ITERS="${FUZZ_MAX_ITERS:-5}"
 # How many tasks to fuzz in parallel (1 = sequential, default).
 export FUZZ_PARALLEL="${FUZZ_PARALLEL:-1}"
