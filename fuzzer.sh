@@ -11,6 +11,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "${SCRIPT_DIR}"
 
 # --------------------------------------------------------------------
+# Enable BuildKit (required for Dockerfile heredoc syntax)
+# --------------------------------------------------------------------
+export DOCKER_BUILDKIT=1
+export COMPOSE_DOCKER_CLI_BUILD=1
+
+# --------------------------------------------------------------------
 # TLS trust store
 # Conda Pythons ship their own OpenSSL and don't read the system CA bundle,
 # so urllib in fuzzer.py would fail with CERTIFICATE_VERIFY_FAILED. Point it
