@@ -72,11 +72,13 @@ export FUZZ_MAX_HARBOR_CHARS="${FUZZ_MAX_HARBOR_CHARS:-4000}"
 mkdir -p "${FUZZ_WORK_ROOT}"
 
 # --------------------------------------------------------------------
-# Logging — mirror terminal output to logs/<timestamp>.log
+# Logging — all output goes to logs/<timestamp>.log
+# Set FUZZ_FOREGROUND=1 to also stream to terminal (default: background).
 # --------------------------------------------------------------------
 LOG_DIR="${SCRIPT_DIR}/logs"
 mkdir -p "${LOG_DIR}"
 LOG_FILE="${LOG_DIR}/${RUN_TS}.log"
+PID_FILE="${LOG_DIR}/${RUN_TS}.pid"
 
 echo "[fuzzer.sh] work_root   = ${FUZZ_WORK_ROOT}"
 echo "[fuzzer.sh] max_iters   = ${FUZZ_MAX_ITERS}"
@@ -88,4 +90,17 @@ if [[ -n "${FUZZ_TASKS:-}" ]]; then
     echo "[fuzzer.sh] task filter = ${FUZZ_TASKS}"
 fi
 
-exec python3 -u "${SCRIPT_DIR}/fuzzer.py" "$@" 2>&1 | tee "${LOG_FILE}"
+if [[ "${FUZZ_FOREGROUND:-0}" == "1" ]]; then
+    # Run in foreground: stream to both terminal and log file
+    exec python3 -u "${SCRIPT_DIR}/fuzzer.py" "$@" 2>&1 | tee "${LOG_FILE}"
+else
+    # Run detached with nohup; output only to log file
+    nohup python3 -u "${SCRIPT_DIR}/fuzzer.py" "$@" > "${LOG_FILE}" 2>&1 &
+    FUZZ_PID=$!
+    echo "${FUZZ_PID}" > "${PID_FILE}"
+    disown "${FUZZ_PID}" 2>/dev/null || true
+    echo "[fuzzer.sh] started in background, pid=${FUZZ_PID}"
+    echo "[fuzzer.sh] pid_file    = ${PID_FILE}"
+    echo "[fuzzer.sh] tail log:   tail -f ${LOG_FILE}"
+    echo "[fuzzer.sh] stop:       kill \$(cat ${PID_FILE})"
+fi
